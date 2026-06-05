@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WC2026 Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green: #1a7a4a; --green-light: #24a362; --green-dark: #0f4d2e;
+    --gold: #d4a017; --gold-light: #f0c040;
+    --red: #c0392b; --red-light: #e74c3c;
+    --amber: #e67e22;
+    --bg: #0a0f0d; --surface: #111a14; --surface2: #182219;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8f0eb; --muted: #7a9585; --white: #ffffff;
+    --font-head: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; min-height: 100vh; }
+
+  /* HEADER */
+  header { background: linear-gradient(135deg, var(--green-dark) 0%, #0a1a10 100%); border-bottom: 2px solid var(--gold); padding: 2rem 1.5rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(212,160,23,.15) 0%, transparent 70%); pointer-events: none; }
+  .header-badge { display: inline-block; background: var(--gold); color: #000; font-family: var(--font-head); font-size: .85rem; letter-spacing: .12em; padding: .25rem .75rem; border-radius: 2px; margin-bottom: .75rem; }
+  header h1 { font-family: var(--font-head); font-size: clamp(2.8rem, 8vw, 5rem); letter-spacing: .05em; line-height: 1; color: var(--white); }
+  header h1 span { color: var(--gold-light); }
+  header p { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
+
+  /* TABS */
+  .tabs { display: flex; justify-content: center; gap: .5rem; padding: 1.25rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .tab-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: .85rem; font-weight: 500; padding: .5rem 1.25rem; border-radius: 2px; cursor: pointer; transition: all .2s; letter-spacing: .04em; text-transform: uppercase; }
+  .tab-btn:hover { border-color: var(--green-light); color: var(--green-light); }
+  .tab-btn.active { background: var(--green); border-color: var(--green); color: var(--white); }
+
+  /* MAIN */
+  main { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .section-title { font-family: var(--font-head); font-size: 1.8rem; letter-spacing: .06em; color: var(--white); margin-bottom: .25rem; }
+  .section-sub { color: var(--muted); font-size: .85rem; margin-bottom: 1.75rem; }
+
+  /* NAME */
+  .name-block { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .name-block label { display: block; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: .5rem; }
+  .name-block input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--font-body); font-size: 1rem; padding: .65rem 1rem; transition: border-color .2s; }
+  .name-block input:focus { outline: none; border-color: var(--green-light); }
+
+  /* DEADLINE BANNER */
+  .deadline-banner { border-radius: 4px; padding: .75rem 1.1rem; margin-bottom: .75rem; font-size: .82rem; display: flex; align-items: center; gap: .6rem; }
+  .deadline-banner.open { background: rgba(36,163,98,.1); border: 1px solid rgba(36,163,98,.3); color: var(--green-light); }
+  .deadline-banner.closing-soon { background: rgba(230,126,34,.12); border: 1px solid rgba(230,126,34,.4); color: var(--amber); }
+  .deadline-banner.closed { background: rgba(192,57,43,.1); border: 1px solid rgba(192,57,43,.3); color: var(--red-light); }
+  .deadline-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .deadline-banner.open .deadline-dot { background: var(--green-light); box-shadow: 0 0 6px var(--green-light); }
+  .deadline-banner.closing-soon .deadline-dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .deadline-banner.closed .deadline-dot { background: var(--red-light); }
+  .deadline-countdown { font-weight: 600; font-family: var(--font-head); letter-spacing: .05em; font-size: .95rem; margin-left: auto; white-space: nowrap; }
+
+  /* ROUND SECTION */
+  .round-section { margin-bottom: 2.5rem; }
+  .round-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
+  .round-label { font-family: var(--font-head); font-size: 1.3rem; letter-spacing: .1em; color: var(--gold); }
+  .round-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .round-new-badge { background: var(--green-dark); border: 1px solid var(--green); color: var(--green-light); font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: .2rem .55rem; border-radius: 2px; }
+
+  .group-section { margin-bottom: 1.5rem; }
+  .group-label { font-family: var(--font-head); font-size: 1rem; letter-spacing: .12em; color: var(--muted); margin-bottom: .5rem; display: flex; align-items: center; gap: .6rem; }
+  .group-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* MATCH CARD */
+  .match-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .9rem 1.1rem; margin-bottom: .6rem; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .75rem; transition: border-color .2s; }
+  .match-card:hover:not(.locked-card) { border-color: rgba(255,255,255,.14); }
+  .match-card.filled { border-left: 3px solid var(--green); }
+  .match-card.locked-card { border-left: 3px solid rgba(192,57,43,.5); opacity: .65; }
+  .team-home { text-align: right; }
+  .team-away { text-align: left; }
+  .team-name { font-weight: 600; font-size: .9rem; }
+  .match-meta { font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+
+  .score-inputs { display: flex; align-items: center; gap: .4rem; }
+  .score-inputs input { width: 44px; height: 38px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--white); font-family: var(--font-head); font-size: 1.3rem; text-align: center; transition: border-color .2s; -moz-appearance: textfield; }
+  .score-inputs input::-webkit-outer-spin-button, .score-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .score-inputs input:focus { outline: none; border-color: var(--green-light); }
+  .score-inputs input:disabled { background: rgba(255,255,255,.03); color: var(--muted); cursor: not-allowed; }
+  .score-sep { font-family: var(--font-head); font-size: 1.2rem; color: var(--muted); }
+  .lock-icon { font-size: .85rem; color: var(--red-light); }
+
+  /* FILTERS */
+  .filter-row { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .gf-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: .78rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: .35rem .75rem; border-radius: 2px; cursor: pointer; transition: all .15s; }
+  .gf-btn:hover, .gf-btn.active { background: var(--green-dark); border-color: var(--green); color: var(--white); }
+
+  /* PROGRESS */
+  .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .progress-bar { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 3px; transition: width .4s ease; width: 0%; }
+  .progress-text { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+  .progress-count { font-weight: 600; color: var(--white); }
+
+  /* SUBMIT */
+  .submit-section { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; text-align: center; margin-top: 2rem; }
+  .submit-section p { color: var(--muted); font-size: .85rem; margin-bottom: 1rem; }
+  .btn-submit { background: var(--green); border: none; border-radius: 3px; color: var(--white); font-family: var(--font-head); font-size: 1.2rem; letter-spacing: .1em; padding: .85rem 3rem; cursor: pointer; transition: all .2s; }
+  .btn-submit:hover { background: var(--green-light); transform: translateY(-1px); }
+  .btn-submit:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+  /* LEADERBOARD */
+  .lb-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  .lb-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: .5rem .75rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .lb-table td { padding: .8rem .75rem; border-bottom: 1px solid var(--border); font-size: .9rem; }
+  .lb-table tr:last-child td { border-bottom: none; }
+  .lb-table tr:hover td { background: var(--surface2); }
+  .rank-cell { font-family: var(--font-head); font-size: 1.1rem; color: var(--muted); }
+  .rank-1 .rank-cell { color: var(--gold); }
+  .rank-2 .rank-cell { color: #c0c0c0; }
+  .rank-3 .rank-cell { color: #cd7f32; }
+  .pts-cell { font-family: var(--font-head); font-size: 1.3rem; color: var(--white); }
+  .badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: .15rem .5rem; border-radius: 2px; letter-spacing: .05em; margin-left: .3rem; }
+  .badge-exact { background: rgba(36,163,98,.2); color: var(--green-light); }
+  .badge-result { background: rgba(212,160,23,.15); color: var(--gold); }
+
+  /* ADMIN */
+  .admin-login { max-width: 400px; margin: 2rem auto; }
+  .admin-login label { display: block; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+  .admin-login input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-size: .95rem; padding: .65rem 1rem; font-family: var(--font-body); }
+  .admin-login input:focus { outline: none; border-color: var(--green-light); }
+
+  .admin-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .admin-tab { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: .45rem 1rem; border-radius: 2px; cursor: pointer; transition: all .15s; }
+  .admin-tab.active { background: var(--green-dark); border-color: var(--green); color: var(--white); }
+  .admin-panel { display: none; }
+  .admin-panel.active { display: block; }
+
+  .btn-small { background: var(--green); border: none; border-radius: 3px; color: var(--white); font-family: var(--font-head); font-size: 1rem; letter-spacing: .08em; padding: .55rem 1.5rem; cursor: pointer; transition: background .2s; }
+  .btn-small:hover { background: var(--green-light); }
+  .btn-danger { background: rgba(192,57,43,.2); border: 1px solid var(--red); color: var(--red-light); font-size: .75rem; font-weight: 600; padding: .3rem .65rem; border-radius: 2px; cursor: pointer; transition: all .15s; }
+  .btn-danger:hover { background: var(--red); color: white; }
+
+  .result-match { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .75rem 1rem; margin-bottom: .5rem; display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: .6rem; }
+  .result-match .team-name { font-size: .85rem; }
+  .btn-save-result { background: var(--green-dark); border: 1px solid var(--green); color: var(--white); font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: .35rem .75rem; border-radius: 2px; cursor: pointer; transition: all .2s; }
+  .btn-save-result:hover { background: var(--green); }
+  .result-saved { color: var(--green-light); font-size: .75rem; }
+
+  /* ADD FIXTURE FORM */
+  .add-fixture-form { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+  .form-row.trio { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+  .form-group input, .form-group select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--font-body); font-size: .9rem; padding: .55rem .85rem; }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green-light); }
+  .form-group select option { background: #111; }
+
+  /* DEADLINE MANAGER */
+  .deadline-row { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .85rem 1rem; margin-bottom: .5rem; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .75rem; }
+  .deadline-row .dl-label { font-size: .85rem; font-weight: 600; }
+  .deadline-row .dl-current { font-size: .78rem; color: var(--muted); }
+  .deadline-row input[type="datetime-local"] { background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--font-body); font-size: .82rem; padding: .4rem .7rem; }
+  .deadline-row input:focus { outline: none; border-color: var(--green-light); }
+
+  /* KNOCKOUT FIXTURE LIST */
+  .ko-fixture { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .75rem 1rem; margin-bottom: .5rem; display: flex; justify-content: space-between; align-items: center; gap: .75rem; }
+  .ko-fixture .ko-info { font-size: .88rem; }
+  .ko-fixture .ko-stage { font-size: .72rem; color: var(--gold); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .2rem; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(4rem); background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1rem 1.75rem; font-size: .9rem; z-index: 999; transition: transform .35s ease, opacity .35s; opacity: 0; pointer-events: none; max-width: 90vw; text-align: center; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+  .toast.warning { border-color: var(--amber); }
+
+  @media (max-width: 520px) {
+    .match-card { grid-template-columns: 1fr; gap: .5rem; }
+    .team-home, .team-away { text-align: left; }
+    .score-inputs { justify-content: flex-start; }
+    .result-match { grid-template-columns: 1fr auto 1fr; }
+    .result-match .btn-save-result { grid-column: 1 / -1; }
+    .form-row, .form-row.trio { grid-template-columns: 1fr; }
+    .deadline-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge">USA · CANADA · MEXICO</div>
+  <h1>WC<span>2026</span><br>PREDICTIONS</h1>
+  <p>11 June – 19 July 2026 &nbsp;·&nbsp; 48 teams &nbsp;·&nbsp; Group stage + knockout rounds</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="predict">Make Predictions</button>
+  <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+  <button class="tab-btn" data-tab="admin">Admin</button>
+</nav>
+
+<main>
+
+  <!-- ══ PREDICT ══ -->
+  <div id="tab-predict" class="tab-panel active">
+    <p class="section-title">YOUR PREDICTIONS</p>
+    <p class="section-sub">Predictions lock automatically before each matchday and knockout round. Locked matches are shown but can't be changed.</p>
+
+    <div class="name-block">
+      <label for="player-name">Your Name</label>
+      <input type="text" id="player-name" placeholder="e.g. Jamie Higgins" maxlength="60" />
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text"><span class="progress-count" id="prog-done">0</span> / <span id="prog-total">0</span> available</div>
+    </div>
+
+    <div class="filter-row" id="stage-filters"></div>
+    <div id="matches-container"><p style="color:var(--muted);text-align:center;padding:3rem 0;">Loading fixtures…</p></div>
+
+    <div class="submit-section">
+      <p>Submitting again will update your predictions for any rounds still open.</p>
+      <button class="btn-submit" id="btn-submit" disabled>Submit Predictions</button>
+    </div>
+  </div>
+
+  <!-- ══ LEADERBOARD ══ -->
+  <div id="tab-leaderboard" class="tab-panel">
+    <p class="section-title">LEADERBOARD</p>
+    <p class="section-sub"><strong>3 pts</strong> exact score &nbsp;·&nbsp; <strong>1 pt</strong> correct result. Updates as results are entered.</p>
+    <div id="lb-content"><p style="color:var(--muted);text-align:center;padding:3rem 0;">Loading…</p></div>
+  </div>
+
+  <!-- ══ ADMIN ══ -->
+  <div id="tab-admin" class="tab-panel">
+    <p class="section-title">ADMIN</p>
+    <p class="section-sub">Enter results, add knockout fixtures, and manage prediction deadlines.</p>
+
+    <div id="admin-login-section" class="admin-login">
+      <label for="admin-key">Admin Key</label>
+      <input type="password" id="admin-key" placeholder="Enter admin key" />
+      <button class="btn-small" id="btn-admin-login" style="margin-top:.75rem">Unlock</button>
+    </div>
+
+    <div id="admin-content" style="display:none">
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-atab="results">Enter Results</button>
+        <button class="admin-tab" data-atab="knockout">Add Knockout Fixtures</button>
+        <button class="admin-tab" data-atab="deadlines">Manage Deadlines</button>
+      </div>
+
+      <!-- Results panel -->
+      <div id="admin-results" class="admin-panel active">
+        <div class="filter-row" id="admin-stage-filters"></div>
+        <div class="filter-row" id="admin-group-filters"></div>
+        <div id="admin-matches"></div>
+      </div>
+
+      <!-- Knockout fixture panel -->
+      <div id="admin-knockout" class="admin-panel">
+        <div class="add-fixture-form">
+          <p style="font-family:var(--font-head);font-size:1.1rem;letter-spacing:.06em;color:var(--white);margin-bottom:1rem;">ADD KNOCKOUT FIXTURE</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Home Team</label>
+              <input type="text" id="ko-home" placeholder="e.g. England" />
+            </div>
+            <div class="form-group">
+              <label>Away Team</label>
+              <input type="text" id="ko-away" placeholder="e.g. France" />
+            </div>
+          </div>
+          <div class="form-row trio">
+            <div class="form-group">
+              <label>Stage</label>
+              <select id="ko-stage">
+                <option>Round of 32</option>
+                <option>Round of 16</option>
+                <option>Quarter-final</option>
+                <option>Semi-final</option>
+                <option>Final</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Match Date</label>
+              <input type="date" id="ko-date" />
+            </div>
+            <div class="form-group">
+              <label>Override Deadline (optional)</label>
+              <input type="datetime-local" id="ko-deadline" />
+            </div>
+          </div>
+          <button class="btn-small" id="btn-add-fixture">Add Fixture</button>
+        </div>
+
+        <p style="font-family:var(--font-head);font-size:1rem;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem;">EXISTING KNOCKOUT FIXTURES</p>
+        <div id="ko-fixture-list"><p style="color:var(--muted);font-size:.85rem;">No knockout fixtures added yet.</p></div>
+      </div>
+
+      <!-- Deadlines panel -->
+      <div id="admin-deadlines" class="admin-panel">
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.25rem;">Override any deadline. Leave blank to use the default. Times are in your local timezone.</p>
+        <div id="deadlines-list"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let MATCHES = [];
+let DEADLINES = {};
+let predictions = JSON.parse(localStorage.getItem("wc2026_predictions") || "{}");
+let savedName = localStorage.getItem("wc2026_name") || "";
+let currentStage = "ALL";
+let adminKey = "";
+let existingResults = {};
+let knockoutFixtures = [];
+
+const $ = (s, c = document) => c.querySelector(s);
+const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+
+// ════════════════════════════════════════════
+//  DEADLINE UTILS
+// ════════════════════════════════════════════
+function isLocked(match) {
+  if (!match.deadline) return false;
+  return new Date(match.deadline) < new Date();
+}
+
+function deadlineStatus(deadline) {
+  if (!deadline) return null;
+  const now = new Date();
+  const dl = new Date(deadline);
+  const diff = dl - now;
+  if (diff < 0) return { state: "closed", label: "Predictions closed" };
+  if (diff < 3600000) return { state: "closing-soon", label: "Closing soon" };
+  return { state: "open", label: "Open for predictions" };
+}
+
+function formatCountdown(deadline) {
+  const diff = new Date(deadline) - new Date();
+  if (diff <= 0) return "CLOSED";
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 48) {
+    const d = Math.floor(h / 24);
+    return `${d}d ${h % 24}h`;
+  }
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function formatDeadline(dt) {
+  return new Date(dt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+$$(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$(".tab-btn").forEach(b => b.classList.remove("active"));
+    $$(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    $(`#tab-${btn.dataset.tab}`).classList.add("active");
+    if (btn.dataset.tab === "leaderboard") loadLeaderboard();
+  });
+});
+
+$$(".admin-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$(".admin-tab").forEach(b => b.classList.remove("active"));
+    $$(".admin-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    $(`#admin-${btn.dataset.atab}`).classList.add("active");
+  });
+});
+
+// ════════════════════════════════════════════
+//  LOAD MATCHES
+// ════════════════════════════════════════════
+async function loadMatches() {
+  try {
+    const res = await fetch("/.netlify/functions/matches");
+    const data = await res.json();
+    MATCHES = data.matches;
+    DEADLINES = data.deadlines;
+  } catch {
+    MATCHES = generateFallbackMatches();
+    DEADLINES = generateFallbackDeadlines();
+  }
+  if (savedName) $("#player-name").value = savedName;
+  renderStageFilters();
+  renderMatches("ALL");
+  updateProgress();
+  updateSubmitBtn();
+  // Refresh countdowns every 30s
+  setInterval(() => {
+    $$(".deadline-countdown").forEach(el => {
+      const dl = el.dataset.deadline;
+      if (dl) el.textContent = formatCountdown(dl);
+    });
+  }, 30000);
+}
+
+// ════════════════════════════════════════════
+//  STAGE FILTERS
+// ════════════════════════════════════════════
+function getStages() {
+  // Group stages by matchday, knockout by round
+  const seen = new Set();
+  const stages = [{ key: "ALL", label: "All" }];
+  // Group matchdays
+  [1, 2, 3].forEach(md => {
+    const key = `group-md${md}`;
+    if (MATCHES.some(m => m.deadlineKey === key)) {
+      stages.push({ key, label: `MD ${md}` });
+    }
+  });
+  // Knockout rounds
+  const koRounds = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Final"];
+  koRounds.forEach(r => {
+    if (MATCHES.some(m => m.stage === r)) {
+      stages.push({ key: r, label: r === "Quarter-final" ? "QF" : r === "Semi-final" ? "SF" : r === "Round of 32" ? "R32" : r === "Round of 16" ? "R16" : "Final" });
+    }
+  });
+  return stages;
+}
+
+function renderStageFilters() {
+  const stages = getStages();
+  const container = $("#stage-filters");
+  container.innerHTML = "";
+  stages.forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = `gf-btn${s.key === "ALL" ? " active" : ""}`;
+    btn.dataset.stage = s.key;
+    btn.textContent = s.label;
+    container.appendChild(btn);
+  });
+  container.addEventListener("click", e => {
+    const btn = e.target.closest(".gf-btn"); if (!btn) return;
+    $$(".gf-btn", container).forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentStage = btn.dataset.stage;
+    renderMatches(currentStage);
+  });
+}
+
+// ════════════════════════════════════════════
+//  RENDER PREDICTIONS
+// ════════════════════════════════════════════
+function getFilteredMatches(stage) {
+  if (stage === "ALL") return MATCHES;
+  if (stage.startsWith("group-md")) return MATCHES.filter(m => m.deadlineKey === stage);
+  return MATCHES.filter(m => m.stage === stage);
+}
+
+function renderMatches(stage) {
+  const filtered = getFilteredMatches(stage);
+  const container = $("#matches-container");
+  container.innerHTML = "";
+
+  // Group by round/matchday
+  const rounds = {};
+  filtered.forEach(m => {
+    const rKey = m.stage === "Group Stage" ? `group-md${m.matchday}` : m.stage;
+    if (!rounds[rKey]) rounds[rKey] = [];
+    rounds[rKey].push(m);
+  });
+
+  const roundOrder = ["group-md1","group-md2","group-md3","Round of 32","Round of 16","Quarter-final","Semi-final","Final"];
+  const sortedRoundKeys = Object.keys(rounds).sort((a, b) => {
+    const ai = roundOrder.indexOf(a), bi = roundOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  sortedRoundKeys.forEach(rKey => {
+    const rMatches = rounds[rKey];
+    const deadlineKey = rKey.startsWith("group-md") ? rKey : rKey;
+    const deadline = DEADLINES[deadlineKey] || rMatches[0]?.deadline;
+    const status = deadline ? deadlineStatus(deadline) : null;
+    const isKnockout = !rKey.startsWith("group-md");
+    const isNewRound = isKnockout && rMatches.some(m => {
+      const added = m.addedAt ? (Date.now() - new Date(m.addedAt)) < 86400000 : false;
+      return added;
+    });
+
+    const sec = document.createElement("div");
+    sec.className = "round-section";
+
+    // Round header
+    const roundLabel = rKey === "group-md1" ? "Group Stage — Matchday 1"
+      : rKey === "group-md2" ? "Group Stage — Matchday 2"
+      : rKey === "group-md3" ? "Group Stage — Matchday 3"
+      : rKey;
+    sec.innerHTML = `
+      <div class="round-header">
+        <div class="round-label">${roundLabel}</div>
+        ${isNewRound ? '<span class="round-new-badge">NEW</span>' : ''}
+      </div>`;
+
+    // Deadline banner
+    if (status) {
+      sec.innerHTML += `
+        <div class="deadline-banner ${status.state}">
+          <span class="deadline-dot"></span>
+          <span>${status.label}${deadline ? ` · Deadline: ${formatDeadline(deadline)}` : ''}</span>
+          ${status.state !== 'closed' ? `<span class="deadline-countdown" data-deadline="${deadline}">${formatCountdown(deadline)}</span>` : ''}
+        </div>`;
+    }
+
+    // Group sub-sections for group stage
+    if (!isKnockout) {
+      const byGroup = {};
+      rMatches.forEach(m => { (byGroup[m.group] = byGroup[m.group] || []).push(m); });
+      Object.entries(byGroup).sort(([a],[b]) => a.localeCompare(b)).forEach(([group, ms]) => {
+        const gsec = document.createElement("div");
+        gsec.className = "group-section";
+        gsec.innerHTML = `<div class="group-label">GROUP ${group}</div>`;
+        ms.forEach(m => gsec.appendChild(matchCard(m)));
+        sec.appendChild(gsec);
+      });
+    } else {
+      rMatches.forEach(m => sec.appendChild(matchCard(m)));
+    }
+
+    container.appendChild(sec);
+  });
+
+  if (container.innerHTML === "") {
+    container.innerHTML = `<p style="color:var(--muted);text-align:center;padding:3rem 0;">No fixtures in this view yet.</p>`;
+  }
+}
+
+function matchCard(m) {
+  const pred = predictions[m.id] || {};
+  const locked = isLocked(m);
+  const filled = pred.home !== undefined && pred.away !== undefined;
+  const card = document.createElement("div");
+  card.className = `match-card${filled && !locked ? " filled" : ""}${locked ? " locked-card" : ""}`;
+  card.innerHTML = `
+    <div class="team-home">
+      <div class="team-name">${m.home}</div>
+      <div class="match-meta">${formatDate(m.date)}${m.group ? ` · Group ${m.group}` : ''}</div>
+    </div>
+    <div class="score-inputs">
+      <input type="number" min="0" max="20" value="${pred.home ?? ""}" data-id="${m.id}" data-side="home" placeholder="–" ${locked ? "disabled" : ""} />
+      <span class="score-sep">${locked ? "🔒" : "–"}</span>
+      <input type="number" min="0" max="20" value="${pred.away ?? ""}" data-id="${m.id}" data-side="away" placeholder="–" ${locked ? "disabled" : ""} />
+    </div>
+    <div class="team-away">
+      <div class="team-name">${m.away}</div>
+      ${locked && filled ? `<div class="match-meta" style="color:var(--muted)">Pred: ${pred.home}–${pred.away}</div>` : ''}
+    </div>`;
+
+  if (!locked) {
+    card.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const id = inp.dataset.id;
+        if (!predictions[id]) predictions[id] = {};
+        predictions[id][inp.dataset.side] = inp.value === "" ? undefined : parseInt(inp.value, 10);
+        const p = predictions[id];
+        card.classList.toggle("filled", p.home !== undefined && p.away !== undefined);
+        localStorage.setItem("wc2026_predictions", JSON.stringify(predictions));
+        updateProgress();
+        updateSubmitBtn();
+      });
+    });
+  }
+  return card;
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  return new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+function updateProgress() {
+  const available = MATCHES.filter(m => !isLocked(m));
+  const done = available.filter(m => {
+    const p = predictions[m.id] || {};
+    return p.home !== undefined && p.away !== undefined;
+  }).length;
+  $("#progress-fill").style.width = available.length ? `${(done / available.length) * 100}%` : "0%";
+  $("#prog-done").textContent = done;
+  $("#prog-total").textContent = available.length;
+}
+
+function updateSubmitBtn() {
+  const name = $("#player-name")?.value.trim();
+  const done = MATCHES.filter(m => {
+    if (isLocked(m)) return false;
+    const p = predictions[m.id] || {};
+    return p.home !== undefined && p.away !== undefined;
+  }).length;
+  const btn = $("#btn-submit");
+  btn.disabled = !name || done === 0;
+  btn.textContent = done === 0 ? "Enter Some Predictions First" : `Submit ${done} Prediction${done !== 1 ? "s" : ""}`;
+}
+
+$("#player-name").addEventListener("input", () => {
+  localStorage.setItem("wc2026_name", $("#player-name").value);
+  updateSubmitBtn();
+});
+
+// ════════════════════════════════════════════
+//  SUBMIT
+// ════════════════════════════════════════════
+$("#btn-submit").addEventListener("click", async () => {
+  const name = $("#player-name").value.trim();
+  if (!name) return showToast("Please enter your name", "error");
+
+  const validPreds = {};
+  MATCHES.forEach(m => {
+    if (isLocked(m)) return;
+    const p = predictions[m.id] || {};
+    if (p.home !== undefined && p.away !== undefined) validPreds[m.id] = p;
+  });
+
+  if (!Object.keys(validPreds).length) return showToast("No predictions to submit", "error");
+
+  const btn = $("#btn-submit");
+  btn.disabled = true; btn.textContent = "Submitting…";
+
+  try {
+    const res = await fetch("/.netlify/functions/submit-prediction", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, predictions: validPreds }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    showToast(`🎉 ${data.accepted} predictions saved for ${name}!`, "success");
+    localStorage.removeItem("wc2026_predictions");
+    localStorage.removeItem("wc2026_name");
+    predictions = {};
+    renderMatches(currentStage);
+    updateProgress();
+  } catch (err) {
+    showToast("Error saving — please try again", "error");
+  } finally { updateSubmitBtn(); }
+});
+
+// ════════════════════════════════════════════
+//  LEADERBOARD
+// ════════════════════════════════════════════
+async function loadLeaderboard() {
+  const el = $("#lb-content");
+  el.innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem 0;">Loading…</p>`;
+  try {
+    const res = await fetch("/.netlify/functions/leaderboard");
+    const data = await res.json();
+    renderLeaderboard(data);
+  } catch {
+    el.innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem 0;">Could not load leaderboard.</p>`;
+  }
+}
+
+function renderLeaderboard({ leaderboard }) {
+  const el = $("#lb-content");
+  if (!leaderboard?.length) {
+    el.innerHTML = `<p style="color:var(--muted);text-align:center;padding:2rem 0;">No submissions yet — be the first!</p>`;
+    return;
+  }
+  const rows = leaderboard.map((p, i) => `
+    <tr class="rank-${i + 1}">
+      <td class="rank-cell">${i + 1}</td>
+      <td><strong>${escHtml(p.name)}</strong></td>
+      <td class="pts-cell">${p.total}</td>
+      <td>
+        ${p.exact ? `<span class="badge badge-exact">${p.exact} exact</span>` : ""}
+        ${p.correct ? `<span class="badge badge-result">${p.correct} result</span>` : ""}
+      </td>
+      <td style="color:var(--muted);font-size:.78rem;">${new Date(p.submittedAt).toLocaleDateString("en-GB")}</td>
+    </tr>`).join("");
+  el.innerHTML = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Points</th><th>Breakdown</th><th>Submitted</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ════════════════════════════════════════════
+//  ADMIN — LOGIN
+// ════════════════════════════════════════════
+$("#btn-admin-login").addEventListener("click", async () => {
+  const key = $("#admin-key").value.trim();
+  if (!key) return;
+  adminKey = key;
+  try {
+    const res = await fetch(`/.netlify/functions/leaderboard?key=${encodeURIComponent(key)}`);
+    if (!res.ok) throw new Error("bad key");
+    const data = await res.json();
+    existingResults = data.results || {};
+    // Load knockout fixtures
+    const mres = await fetch("/.netlify/functions/matches");
+    const mdata = await mres.json();
+    knockoutFixtures = mdata.matches.filter(m => m.stage !== "Group Stage");
+    $("#admin-login-section").style.display = "none";
+    $("#admin-content").style.display = "block";
+    renderAdminResults();
+    renderKnockoutFixtureList();
+    renderDeadlinesPanel(mdata.deadlines);
+  } catch {
+    showToast("Invalid admin key", "error");
+  }
+});
+
+// ════════════════════════════════════════════
+//  ADMIN — RESULTS
+// ════════════════════════════════════════════
+let adminStageFilter = "ALL";
+let adminGroupFilter = "ALL";
+
+function renderAdminResults() {
+  // Stage filters
+  const sf = $("#admin-stage-filters");
+  sf.innerHTML = "";
+  const stages = getStages();
+  stages.forEach(s => {
+    const b = document.createElement("button");
+    b.className = `gf-btn${adminStageFilter === s.key ? " active" : ""}`;
+    b.dataset.stage = s.key; b.textContent = s.label;
+    sf.appendChild(b);
+  });
+  sf.addEventListener("click", e => {
+    const btn = e.target.closest(".gf-btn"); if (!btn) return;
+    $$(".gf-btn", sf).forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    adminStageFilter = btn.dataset.stage;
+    adminGroupFilter = "ALL";
+    renderAdminGroupFilters();
+    renderAdminMatchList();
+  });
+
+  renderAdminGroupFilters();
+  renderAdminMatchList();
+}
+
+function renderAdminGroupFilters() {
+  const gf = $("#admin-group-filters");
+  gf.innerHTML = "";
+  const filtered = getFilteredMatches(adminStageFilter);
+  const groups = [...new Set(filtered.map(m => m.group).filter(Boolean))].sort();
+  if (!groups.length) return;
+  const allBtn = document.createElement("button");
+  allBtn.className = `gf-btn${adminGroupFilter === "ALL" ? " active" : ""}`;
+  allBtn.dataset.group = "ALL"; allBtn.textContent = "All Groups";
+  gf.appendChild(allBtn);
+  groups.forEach(g => {
+    const b = document.createElement("button");
+    b.className = `gf-btn${adminGroupFilter === g ? " active" : ""}`;
+    b.dataset.group = g; b.textContent = `Group ${g}`;
+    gf.appendChild(b);
+  });
+  gf.addEventListener("click", e => {
+    const btn = e.target.closest(".gf-btn"); if (!btn) return;
+    $$(".gf-btn", gf).forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    adminGroupFilter = btn.dataset.group;
+    renderAdminMatchList();
+  });
+}
+
+function renderAdminMatchList() {
+  let filtered = getFilteredMatches(adminStageFilter);
+  if (adminGroupFilter !== "ALL") filtered = filtered.filter(m => m.group === adminGroupFilter);
+  const container = $("#admin-matches");
+  container.innerHTML = "";
+  filtered.forEach(m => {
+    const saved = existingResults[m.id];
+    const div = document.createElement("div");
+    div.className = "result-match";
+    const inp = (side) => `<input type="number" min="0" max="20" value="${saved?.[side] ?? ""}" placeholder="–" data-s="${side}" style="width:40px;height:34px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:white;font-family:var(--font-head);font-size:1.2rem;text-align:center;-moz-appearance:textfield;" />`;
+    div.innerHTML = `
+      <div class="team-name" style="text-align:right">${m.home}</div>
+      <div class="score-inputs">${inp("home")}<span class="score-sep">:</span>${inp("away")}</div>
+      <div class="team-name">${m.away}${m.stage !== "Group Stage" ? `<div style="font-size:.7rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em">${m.stage}</div>` : ''}</div>
+      <button class="btn-save-result">Save</button>`;
+    div.querySelector(".btn-save-result").addEventListener("click", async () => {
+      const h = div.querySelector("[data-s='home']").value;
+      const a = div.querySelector("[data-s='away']").value;
+      if (h === "" || a === "") return showToast("Enter both scores", "error");
+      try {
+        const res = await fetch("/.netlify/functions/leaderboard", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: adminKey, matchId: m.id, homeScore: parseInt(h), awayScore: parseInt(a) }),
+        });
+        if (!res.ok) throw new Error();
+        existingResults[m.id] = { home: parseInt(h), away: parseInt(a) };
+        showToast(`✓ ${m.home} ${h}–${a} ${m.away} saved`, "success");
+      } catch { showToast("Failed to save result", "error"); }
+    });
+    container.appendChild(div);
+  });
+  if (!filtered.length) container.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">No matches in this view.</p>`;
+}
+
+// ════════════════════════════════════════════
+//  ADMIN — KNOCKOUT FIXTURES
+// ════════════════════════════════════════════
+$("#btn-add-fixture").addEventListener("click", async () => {
+  const home = $("#ko-home").value.trim();
+  const away = $("#ko-away").value.trim();
+  const stage = $("#ko-stage").value;
+  const date = $("#ko-date").value;
+  const deadlineVal = $("#ko-deadline").value;
+
+  if (!home || !away) return showToast("Enter both team names", "error");
+
+  const id = `ko-${stage.toLowerCase().replace(/\s+/g,"-")}-${home.toLowerCase().replace(/\s+/g,"-")}-vs-${away.toLowerCase().replace(/\s+/g,"-")}`;
+  const deadlineKey = stage;
+  const deadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
+
+  try {
+    const res = await fetch("/.netlify/functions/admin", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: adminKey, action: "add-knockout-fixture", fixture: { id, home, away, stage, date, deadlineKey, deadline } }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    knockoutFixtures = data.fixtures;
+    renderKnockoutFixtureList();
+    // Reload matches so the predict tab updates
+    await reloadMatches();
+    renderStageFilters();
+    renderMatches(currentStage);
+    showToast(`✓ ${home} vs ${away} added`, "success");
+    $("#ko-home").value = ""; $("#ko-away").value = ""; $("#ko-date").value = ""; $("#ko-deadline").value = "";
+  } catch (e) { showToast("Failed to add fixture", "error"); }
+});
+
+function renderKnockoutFixtureList() {
+  const el = $("#ko-fixture-list");
+  if (!knockoutFixtures.length) {
+    el.innerHTML = `<p style="color:var(--muted);font-size:.85rem;">No knockout fixtures added yet.</p>`;
+    return;
+  }
+  el.innerHTML = "";
+  knockoutFixtures.forEach(f => {
+    const div = document.createElement("div");
+    div.className = "ko-fixture";
+    div.innerHTML = `
+      <div class="ko-info">
+        <div class="ko-stage">${f.stage} · ${f.date || "TBC"}</div>
+        <div><strong>${escHtml(f.home)}</strong> vs <strong>${escHtml(f.away)}</strong></div>
+        ${f.deadline ? `<div style="font-size:.72rem;color:var(--muted)">Deadline: ${formatDeadline(f.deadline)}</div>` : ''}
+      </div>
+      <button class="btn-danger" data-id="${f.id}">Delete</button>`;
+    div.querySelector(".btn-danger").addEventListener("click", async () => {
+      if (!confirm(`Delete ${f.home} vs ${f.away}?`)) return;
+      try {
+        const res = await fetch("/.netlify/functions/admin", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: adminKey, action: "delete-knockout-fixture", id: f.id }),
+        });
+        const data = await res.json();
+        knockoutFixtures = data.fixtures;
+        renderKnockoutFixtureList();
+        await reloadMatches();
+        renderStageFilters();
+        renderMatches(currentStage);
+        showToast("Fixture deleted", "warning");
+      } catch { showToast("Failed to delete", "error"); }
+    });
+    el.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════════
+//  ADMIN — DEADLINES
+// ════════════════════════════════════════════
+function renderDeadlinesPanel(deadlines) {
+  const el = $("#deadlines-list");
+  el.innerHTML = "";
+  const allKeys = [
+    { key: "group-md1", label: "Group Stage — Matchday 1" },
+    { key: "group-md2", label: "Group Stage — Matchday 2" },
+    { key: "group-md3", label: "Group Stage — Matchday 3" },
+    { key: "Round of 32", label: "Round of 32" },
+    { key: "Round of 16", label: "Round of 16" },
+    { key: "Quarter-final", label: "Quarter-finals" },
+    { key: "Semi-final", label: "Semi-finals" },
+    { key: "Final", label: "Final" },
+  ];
+  allKeys.forEach(({ key, label }) => {
+    const current = deadlines[key];
+    const row = document.createElement("div");
+    row.className = "deadline-row";
+    // Convert UTC to local datetime-local value
+    const toLocalInput = (utc) => {
+      if (!utc) return "";
+      const d = new Date(utc);
+      const pad = n => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    row.innerHTML = `
+      <div>
+        <div class="dl-label">${label}</div>
+        <div class="dl-current">${current ? `Default: ${formatDeadline(current)}` : "No default set"}</div>
+      </div>
+      <input type="datetime-local" value="${toLocalInput(current)}" data-key="${key}" />
+      <button class="btn-small" data-key="${key}" style="padding:.4rem 1rem;font-size:.85rem;">Save</button>`;
+    row.querySelector(".btn-small").addEventListener("click", async () => {
+      const inp = row.querySelector("input");
+      const val = inp.value;
+      if (!val) return showToast("Pick a date/time first", "error");
+      const utc = new Date(val).toISOString();
+      try {
+        const res = await fetch("/.netlify/functions/admin", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: adminKey, action: "update-deadline", key: key, datetime: utc }),
+        });
+        if (!res.ok) throw new Error();
+        showToast(`✓ ${label} deadline updated`, "success");
+        await reloadMatches();
+        renderMatches(currentStage);
+      } catch { showToast("Failed to update deadline", "error"); }
+    });
+    el.appendChild(row);
+  });
+}
+
+// ════════════════════════════════════════════
+//  RELOAD HELPER
+// ════════════════════════════════════════════
+async function reloadMatches() {
+  try {
+    const res = await fetch("/.netlify/functions/matches");
+    const data = await res.json();
+    MATCHES = data.matches;
+    DEADLINES = data.deadlines;
+  } catch {}
+}
+
+// ════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════
+function showToast(msg, type = "success") {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3500);
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function generateFallbackMatches() {
+  const groups={A:["Mexico","South Africa","Korea Republic","Czechia"],B:["Canada","Bosnia and Herzegovina","Qatar","Switzerland"],C:["Brazil","Japan","Iran","Algeria"],D:["USA","Paraguay","Australia","Türkiye"],E:["Germany","Saudi Arabia","Belgium","Uruguay"],F:["Morocco","Ukraine","Iraq","Sweden"],G:["Netherlands","Senegal","Slovenia","New Zealand"],H:["Spain","Serbia","Uzbekistan","New Caledonia"],I:["France","Nigeria","Cameroon","Jordan"],J:["Argentina","Ivory Coast","Denmark","Peru"],K:["Portugal","Poland","Ecuador","Indonesia"],L:["England","Croatia","Ghana","Panama"]};
+  const dates={A:{1:"2026-06-11",2:"2026-06-17",3:"2026-06-25"},B:{1:"2026-06-12",2:"2026-06-17",3:"2026-06-25"},C:{1:"2026-06-12",2:"2026-06-18",3:"2026-06-26"},D:{1:"2026-06-12",2:"2026-06-18",3:"2026-06-26"},E:{1:"2026-06-13",2:"2026-06-19",3:"2026-06-23"},F:{1:"2026-06-13",2:"2026-06-19",3:"2026-06-23"},G:{1:"2026-06-14",2:"2026-06-20",3:"2026-06-24"},H:{1:"2026-06-14",2:"2026-06-20",3:"2026-06-24"},I:{1:"2026-06-15",2:"2026-06-21",3:"2026-06-22"},J:{1:"2026-06-15",2:"2026-06-21",3:"2026-06-22"},K:{1:"2026-06-16",2:"2026-06-21",3:"2026-06-26"},L:{1:"2026-06-16",2:"2026-06-21",3:"2026-06-26"}};
+  const dl={"group-md1":"2026-06-11T22:00:00Z","group-md2":"2026-06-17T22:00:00Z","group-md3":"2026-06-22T22:00:00Z"};
+  const matches=[]; let id=1;
+  for(const[g,t]of Object.entries(groups)){[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]].forEach(([a,b],i)=>{const md=Math.floor(i/2)+1;const dk=`group-md${md}`;matches.push({id:String(id++).padStart(3,"0"),group:g,home:t[a],away:t[b],stage:"Group Stage",matchday:md,date:dates[g][md],deadlineKey:dk,deadline:dl[dk]});});}
+  return matches;
+}
+function generateFallbackDeadlines() {
+  return {"group-md1":"2026-06-11T22:00:00Z","group-md2":"2026-06-17T22:00:00Z","group-md3":"2026-06-22T22:00:00Z"};
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+loadMatches();
+</script>
+</body>
+</html>

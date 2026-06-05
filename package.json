@@ -1,0 +1,11 @@
+{
+  "name": "wc2026-predictions",
+  "version": "1.0.0",
+  "description": "FIFA World Cup 2026 Score Predictions App",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.0.0"
+  }
+}
