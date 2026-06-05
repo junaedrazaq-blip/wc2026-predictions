@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "FIFA World Cup 2026 Score Predictions App",
   "scripts": {
+    "build": "npm install",
     "dev": "netlify dev"
   },
   "dependencies": {
-    "@netlify/functions": "^2.0.0"
+    "@netlify/functions": "^2.0.0",
+    "@netlify/blobs": "^8.1.0"
   }
 }
