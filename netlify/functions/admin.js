@@ -43,5 +43,11 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: JSON.stringify({ ok: true, fixtures }) };
   }
 
+  if (action === "set-bonus-answers") {
+    const { winner, boot, goals } = body;
+    await cfg.setJSON("bonus-answers", { winner: winner || null, boot: boot || null, goals: goals ?? null });
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+  }
+
   return { statusCode: 400, body: "Unknown action" };
 };

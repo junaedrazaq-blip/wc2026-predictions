@@ -10,6 +10,19 @@ function calcPoints(predicted, actual) {
   return predResult === actResult ? 1 : 0;
 }
 
+function calcBonusPoints(entry, bonusAnswers) {
+  let pts = 0;
+  if (!bonusAnswers) return { pts, winnerCorrect: false, bootCorrect: false };
+  const bonus = entry.bonus || {};
+  const winnerCorrect = bonusAnswers.winner && bonus.winner &&
+    bonus.winner.trim().toLowerCase() === bonusAnswers.winner.trim().toLowerCase();
+  const bootCorrect = bonusAnswers.boot && bonus.boot &&
+    bonus.boot.trim().toLowerCase() === bonusAnswers.boot.trim().toLowerCase();
+  if (winnerCorrect) pts += 10;
+  if (bootCorrect)   pts += 10;
+  return { pts, winnerCorrect, bootCorrect };
+}
+
 exports.handler = async (event) => {
   const adminKey = process.env.ADMIN_KEY || "wc2026admin";
 
@@ -27,15 +40,19 @@ exports.handler = async (event) => {
 
   const resultsStore     = store("results");
   const predictionsStore = store("predictions");
+  const configStore      = store("config");
 
   let resultBlobs = [], predBlobs = [];
-  try { ({ blobs: resultBlobs }     = await resultsStore.list()); }     catch {}
-  try { ({ blobs: predBlobs }       = await predictionsStore.list()); } catch {}
+  try { ({ blobs: resultBlobs }  = await resultsStore.list()); }     catch {}
+  try { ({ blobs: predBlobs }    = await predictionsStore.list()); } catch {}
 
   const results = {};
   await Promise.all(resultBlobs.map(async ({ key }) => {
     try { results[key] = await resultsStore.get(key, { type: "json" }); } catch {}
   }));
+
+  let bonusAnswers = null;
+  try { bonusAnswers = await configStore.get("bonus-answers", { type: "json" }); } catch {}
 
   const allPredictions = (await Promise.all(
     predBlobs.map(async b => { try { return await predictionsStore.get(b.key, { type: "json" }); } catch { return null; } })
@@ -50,14 +67,38 @@ exports.handler = async (event) => {
       total += pts;
       if (pts === 3) exact++; else if (pts === 1) correct++;
     }
-    return { name: entry.name, id: entry.id, total, exact, correct, submittedAt: entry.submittedAt };
+    const { pts: bonusPts, winnerCorrect, bootCorrect } = calcBonusPoints(entry, bonusAnswers);
+    total += bonusPts;
+
+    return {
+      name: entry.name,
+      id: entry.id,
+      total,
+      exact,
+      correct,
+      bonusWinner: winnerCorrect ? entry.bonus?.winner : null,
+      bonusBoot:   bootCorrect   ? entry.bonus?.boot   : null,
+      bonusGoals:  entry.bonus?.goals,
+      submittedAt: entry.submittedAt,
+    };
   });
 
-  leaderboard.sort((a, b) => b.total - a.total || b.exact - a.exact);
+  // Sort: total pts desc, exact scores desc, then closest total goals tiebreaker
+  const actualGoals = bonusAnswers?.goals;
+  leaderboard.sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    if (b.exact !== a.exact) return b.exact - a.exact;
+    if (actualGoals !== undefined && actualGoals !== null) {
+      const da = Math.abs((a.bonusGoals ?? Infinity) - actualGoals);
+      const db = Math.abs((b.bonusGoals ?? Infinity) - actualGoals);
+      return da - db;
+    }
+    return 0;
+  });
 
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ leaderboard, results }),
+    body: JSON.stringify({ leaderboard, results, bonusAnswers }),
   };
 };

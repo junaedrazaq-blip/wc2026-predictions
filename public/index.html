@@ -167,6 +167,22 @@
   .ko-fixture .ko-info { font-size: .88rem; }
   .ko-fixture .ko-stage { font-size: .72rem; color: var(--gold); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .2rem; }
 
+  /* BONUS PREDICTIONS */
+  .bonus-block { background: var(--surface); border: 1px solid var(--gold); border-radius: 4px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .bonus-block::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 100% 0%, rgba(212,160,23,.07) 0%, transparent 60%); pointer-events: none; }
+  .bonus-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .25rem; }
+  .bonus-title { font-family: var(--font-head); font-size: 1.3rem; letter-spacing: .1em; color: var(--gold); }
+  .bonus-pts-badge { background: rgba(212,160,23,.15); border: 1px solid rgba(212,160,23,.3); color: var(--gold-light); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .2rem .6rem; border-radius: 2px; }
+  .bonus-sub { color: var(--muted); font-size: .8rem; margin-bottom: 1.25rem; }
+  .bonus-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+  .bonus-field label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+  .bonus-field .pts-label { color: var(--gold); margin-left: .3rem; font-size: .7rem; }
+  .bonus-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: var(--font-body); font-size: .95rem; padding: .6rem .85rem; transition: border-color .2s; }
+  .bonus-field input:focus { outline: none; border-color: var(--gold); }
+  .bonus-field input:disabled { opacity: .5; cursor: not-allowed; }
+  .bonus-field.filled input { border-color: rgba(212,160,23,.4); }
+  @media (max-width: 520px) { .bonus-fields { grid-template-columns: 1fr; } }
+
   /* TOAST */
   .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(4rem); background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1rem 1.75rem; font-size: .9rem; z-index: 999; transition: transform .35s ease, opacity .35s; opacity: 0; pointer-events: none; max-width: 90vw; text-align: center; }
   .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
@@ -216,6 +232,28 @@
       <div class="progress-text"><span class="progress-count" id="prog-done">0</span> / <span id="prog-total">0</span> available</div>
     </div>
 
+    <div class="bonus-block" id="bonus-block">
+      <div class="bonus-header">
+        <div class="bonus-title">TOURNAMENT SPECIALS</div>
+        <span class="bonus-pts-badge">Bonus Points</span>
+      </div>
+      <p class="bonus-sub">Locks at the same time as Matchday 1. Tiebreaker uses Total Goals if scores are level.</p>
+      <div class="bonus-fields">
+        <div class="bonus-field" id="bf-winner">
+          <label>Tournament Winner <span class="pts-label">10 pts</span></label>
+          <input type="text" id="bonus-winner" placeholder="e.g. England" maxlength="60" />
+        </div>
+        <div class="bonus-field" id="bf-boot">
+          <label>Golden Boot Winner <span class="pts-label">10 pts</span></label>
+          <input type="text" id="bonus-boot" placeholder="e.g. Mbappé" maxlength="60" />
+        </div>
+        <div class="bonus-field" id="bf-goals">
+          <label>Total Tournament Goals <span class="pts-label">Tiebreaker</span></label>
+          <input type="number" id="bonus-goals" placeholder="e.g. 180" min="0" max="500" />
+        </div>
+      </div>
+    </div>
+
     <div class="filter-row" id="stage-filters"></div>
     <div id="matches-container"><p style="color:var(--muted);text-align:center;padding:3rem 0;">Loading fixtures…</p></div>
 
@@ -228,7 +266,7 @@
   <!-- ══ LEADERBOARD ══ -->
   <div id="tab-leaderboard" class="tab-panel">
     <p class="section-title">LEADERBOARD</p>
-    <p class="section-sub"><strong>3 pts</strong> exact score &nbsp;·&nbsp; <strong>1 pt</strong> correct result. Updates as results are entered.</p>
+    <p class="section-sub"><strong>3 pts</strong> exact score &nbsp;·&nbsp; <strong>1 pt</strong> correct result &nbsp;·&nbsp; <strong>10 pts</strong> tournament winner &amp; golden boot &nbsp;·&nbsp; total goals used as tiebreaker.</p>
     <div id="lb-content"><p style="color:var(--muted);text-align:center;padding:3rem 0;">Loading…</p></div>
   </div>
 
@@ -246,6 +284,7 @@
     <div id="admin-content" style="display:none">
       <div class="admin-tabs">
         <button class="admin-tab active" data-atab="results">Enter Results</button>
+        <button class="admin-tab" data-atab="bonus">Bonus Answers</button>
         <button class="admin-tab" data-atab="knockout">Add Knockout Fixtures</button>
         <button class="admin-tab" data-atab="deadlines">Manage Deadlines</button>
       </div>
@@ -255,6 +294,28 @@
         <div class="filter-row" id="admin-stage-filters"></div>
         <div class="filter-row" id="admin-group-filters"></div>
         <div id="admin-matches"></div>
+      </div>
+
+      <!-- Bonus answers panel -->
+      <div id="admin-bonus" class="admin-panel">
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.25rem;">Enter the correct answers for the bonus predictions to award points.</p>
+        <div class="add-fixture-form">
+          <div class="form-row trio">
+            <div class="form-group">
+              <label>Tournament Winner</label>
+              <input type="text" id="admin-bonus-winner" placeholder="e.g. England" maxlength="60" />
+            </div>
+            <div class="form-group">
+              <label>Golden Boot Winner</label>
+              <input type="text" id="admin-bonus-boot" placeholder="e.g. Mbappé" maxlength="60" />
+            </div>
+            <div class="form-group">
+              <label>Total Tournament Goals</label>
+              <input type="number" id="admin-bonus-goals" placeholder="e.g. 180" min="0" max="500" />
+            </div>
+          </div>
+          <button class="btn-small" id="btn-save-bonus">Save Bonus Answers</button>
+        </div>
       </div>
 
       <!-- Knockout fixture panel -->
@@ -317,6 +378,7 @@
 let MATCHES = [];
 let DEADLINES = {};
 let predictions = JSON.parse(localStorage.getItem("wc2026_predictions") || "{}");
+let bonusPredictions = JSON.parse(localStorage.getItem("wc2026_bonus") || "{}");
 let savedName = localStorage.getItem("wc2026_name") || "";
 let currentStage = "ALL";
 let adminKey = "";
@@ -397,6 +459,7 @@ async function loadMatches() {
     DEADLINES = generateFallbackDeadlines();
   }
   if (savedName) $("#player-name").value = savedName;
+  initBonusBlock();
   renderStageFilters();
   renderMatches("ALL");
   updateProgress();
@@ -589,9 +652,14 @@ function updateProgress() {
     const p = predictions[m.id] || {};
     return p.home !== undefined && p.away !== undefined;
   }).length;
-  $("#progress-fill").style.width = available.length ? `${(done / available.length) * 100}%` : "0%";
-  $("#prog-done").textContent = done;
-  $("#prog-total").textContent = available.length;
+  const md1Locked = DEADLINES["group-md1"] ? new Date(DEADLINES["group-md1"]) < new Date() : false;
+  const bonusTotal = 3;
+  const bonusDone = (!md1Locked ? (bonusPredictions.winner ? 1 : 0) + (bonusPredictions.boot ? 1 : 0) + (bonusPredictions.goals !== undefined ? 1 : 0) : 0);
+  const totalAvail = available.length + (!md1Locked ? bonusTotal : 0);
+  const totalDone  = done + bonusDone;
+  $("#progress-fill").style.width = totalAvail ? `${(totalDone / totalAvail) * 100}%` : "0%";
+  $("#prog-done").textContent = totalDone;
+  $("#prog-total").textContent = totalAvail;
 }
 
 function updateSubmitBtn() {
@@ -625,7 +693,8 @@ $("#btn-submit").addEventListener("click", async () => {
     if (p.home !== undefined && p.away !== undefined) validPreds[m.id] = p;
   });
 
-  if (!Object.keys(validPreds).length) return showToast("No predictions to submit", "error");
+  if (!Object.keys(validPreds).length && !bonusPredictions.winner && !bonusPredictions.boot && !bonusPredictions.goals)
+    return showToast("No predictions to submit", "error");
 
   const btn = $("#btn-submit");
   btn.disabled = true; btn.textContent = "Submitting…";
@@ -633,14 +702,17 @@ $("#btn-submit").addEventListener("click", async () => {
   try {
     const res = await fetch("/.netlify/functions/submit-prediction", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, predictions: validPreds }),
+      body: JSON.stringify({ name, predictions: validPreds, bonus: bonusPredictions }),
     });
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     showToast(`🎉 ${data.accepted} predictions saved for ${name}!`, "success");
     localStorage.removeItem("wc2026_predictions");
     localStorage.removeItem("wc2026_name");
+    localStorage.removeItem("wc2026_bonus");
     predictions = {};
+    bonusPredictions = {};
+    initBonusBlock();
     renderMatches(currentStage);
     updateProgress();
   } catch (err) {
@@ -678,9 +750,13 @@ function renderLeaderboard({ leaderboard }) {
         ${p.exact ? `<span class="badge badge-exact">${p.exact} exact</span>` : ""}
         ${p.correct ? `<span class="badge badge-result">${p.correct} result</span>` : ""}
       </td>
-      <td style="color:var(--muted);font-size:.78rem;">${new Date(p.submittedAt).toLocaleDateString("en-GB")}</td>
+      <td style="font-size:.82rem;">
+        ${p.bonusWinner ? `<div style="color:var(--gold-light)">🏆 ${escHtml(p.bonusWinner)}</div>` : ''}
+        ${p.bonusBoot ? `<div style="color:var(--muted)">👟 ${escHtml(p.bonusBoot)}</div>` : ''}
+      </td>
+      <td style="color:var(--muted);font-size:.82rem;">${p.bonusGoals !== undefined ? p.bonusGoals : '—'}</td>
     </tr>`).join("");
-  el.innerHTML = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Points</th><th>Breakdown</th><th>Submitted</th></tr></thead><tbody>${rows}</tbody></table>`;
+  el.innerHTML = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Points</th><th>Breakdown</th><th>Bonus</th><th>Goals (TB)</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 // ════════════════════════════════════════════
@@ -912,7 +988,7 @@ function renderDeadlinesPanel(deadlines) {
       try {
         const res = await fetch("/.netlify/functions/admin", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ key: adminKey, action: "update-deadline", deadlineKey: key, datetime: utc }),
+          body: JSON.stringify({ key: adminKey, action: "update-deadline", key: key, datetime: utc }),
         });
         if (!res.ok) throw new Error();
         showToast(`✓ ${label} deadline updated`, "success");
@@ -923,6 +999,57 @@ function renderDeadlinesPanel(deadlines) {
     el.appendChild(row);
   });
 }
+
+// ════════════════════════════════════════════
+//  BONUS PREDICTIONS
+// ════════════════════════════════════════════
+function initBonusBlock() {
+  const md1Deadline = DEADLINES["group-md1"];
+  const locked = md1Deadline ? new Date(md1Deadline) < new Date() : false;
+
+  const winnerInp = $("#bonus-winner");
+  const bootInp   = $("#bonus-boot");
+  const goalsInp  = $("#bonus-goals");
+
+  winnerInp.value = bonusPredictions.winner || "";
+  bootInp.value   = bonusPredictions.boot   || "";
+  goalsInp.value  = bonusPredictions.goals  !== undefined ? bonusPredictions.goals : "";
+
+  [winnerInp, bootInp, goalsInp].forEach(inp => { inp.disabled = locked; });
+
+  const block = $("#bonus-block");
+  if (locked) {
+    block.style.borderColor = "rgba(192,57,43,.4)";
+    $(".bonus-sub").textContent = "🔒 Bonus predictions are locked.";
+  }
+
+  ["winner","boot","goals"].forEach(key => {
+    const inp = key === "winner" ? winnerInp : key === "boot" ? bootInp : goalsInp;
+    inp.addEventListener("input", () => {
+      const val = key === "goals" ? (inp.value === "" ? undefined : parseInt(inp.value,10)) : inp.value.trim() || undefined;
+      if (val !== undefined) bonusPredictions[key] = val;
+      else delete bonusPredictions[key];
+      document.getElementById(`bf-${key === "winner" ? "winner" : key === "boot" ? "boot" : "goals"}`).classList.toggle("filled", !!inp.value);
+      localStorage.setItem("wc2026_bonus", JSON.stringify(bonusPredictions));
+      updateSubmitBtn();
+    });
+  });
+}
+
+$("#btn-save-bonus").addEventListener("click", async () => {
+  const winner = $("#admin-bonus-winner").value.trim();
+  const boot   = $("#admin-bonus-boot").value.trim();
+  const goals  = $("#admin-bonus-goals").value;
+  if (!winner && !boot && goals === "") return showToast("Enter at least one bonus answer", "error");
+  try {
+    const res = await fetch("/.netlify/functions/admin", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: adminKey, action: "set-bonus-answers", winner: winner || null, boot: boot || null, goals: goals !== "" ? parseInt(goals) : null }),
+    });
+    if (!res.ok) throw new Error();
+    showToast("✓ Bonus answers saved", "success");
+  } catch { showToast("Failed to save bonus answers", "error"); }
+});
 
 // ════════════════════════════════════════════
 //  RELOAD HELPER
