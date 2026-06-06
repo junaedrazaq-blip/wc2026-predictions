@@ -1,6 +1,73 @@
 const { store } = require("./_store");
 const { MATCHDAY_DEADLINES, KNOCKOUT_ROUND_DEADLINES, GROUP_MATCHES } = require("./matches-data");
 
+const SHEET_ID = "1ELfBkJlUpBr2TuHYuztsHxGVk9-j6Pv-cnxipVCK1EA";
+const CLIENT_EMAIL = "wc2026predictionapiservice@wc2026predictionproject.iam.gserviceaccount.com";
+
+// ── Google Sheets JWT auth ──────────────────────────────────────────────────
+async function getAccessToken() {
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: "RS256", typ: "JWT" };
+  const claim = {
+    iss: CLIENT_EMAIL,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const encode = obj => Buffer.from(JSON.stringify(obj)).toString("base64url");
+  const signingInput = `${encode(header)}.${encode(claim)}`;
+
+  // Import private key and sign
+  const keyData = privateKey
+    .replace("-----BEGIN RSA PRIVATE KEY-----", "")
+    .replace("-----END RSA PRIVATE KEY-----", "")
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s/g, "");
+
+  const binaryKey = Buffer.from(keyData, "base64");
+  const cryptoKey = await crypto.subtle.importKey(
+    "pkcs8", binaryKey,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false, ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    cryptoKey,
+    Buffer.from(signingInput)
+  );
+
+  const jwt = `${signingInput}.${Buffer.from(signature).toString("base64url")}`;
+
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  });
+  const tokenData = await tokenRes.json();
+  return tokenData.access_token;
+}
+
+async function appendToSheet(rows) {
+  try {
+    const token = await getAccessToken();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A1:E1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    await fetch(url, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ values: rows }),
+    });
+  } catch (err) {
+    console.error("Google Sheets append failed:", err);
+    // Non-fatal — don't fail the whole submission if Sheets errors
+  }
+}
+
+// ── Main handler ────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
 
@@ -38,8 +105,24 @@ exports.handler = async (event) => {
 
   if (!Object.keys(valid).length) return { statusCode: 400, body: JSON.stringify({ error: "All predictions past deadline", locked }) };
 
-  const key = name.trim().toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
-  await store("predictions").setJSON(key, { id: key, name: name.trim(), predictions: valid, lockedOut: locked, submittedAt: new Date().toISOString() });
+  // Use name as key so resubmissions overwrite
+  const key = name.trim().toLowerCase().replace(/\s+/g, "-");
+  const timestamp = new Date().toISOString();
 
-  return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true, id: key, accepted: Object.keys(valid).length, locked: locked.length }) };
+  await store("predictions").setJSON(key, {
+    id: key, name: name.trim(), predictions: valid,
+    lockedOut: locked, submittedAt: timestamp,
+  });
+
+  // Append each prediction as a row in Google Sheets
+  const rows = Object.entries(valid).map(([matchId, pred]) => [
+    timestamp, name.trim(), matchId, pred.home, pred.away
+  ]);
+  await appendToSheet(rows);
+
+  return {
+    statusCode: 200,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ success: true, id: key, accepted: Object.keys(valid).length, locked: locked.length }),
+  };
 };
