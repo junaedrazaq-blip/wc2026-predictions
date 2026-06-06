@@ -1,33 +1,17 @@
-const { getStore } = require("@netlify/blobs");
+const { store } = require("./_store");
 
 exports.handler = async (event) => {
-  // Simple passphrase protection – set ADMIN_KEY env var in Netlify dashboard
   const adminKey = process.env.ADMIN_KEY || "wc2026admin";
-  const provided = event.queryStringParameters?.key;
+  if (event.queryStringParameters?.key !== adminKey) return { statusCode: 401, body: JSON.stringify({ error: "Unauthorised" }) };
 
-  if (provided !== adminKey) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: "Unauthorised" }),
-    };
-  }
+  let blobs = [];
+  try { ({ blobs } = await store("predictions").list()); } catch {}
 
-  const store = getStore("predictions");
-  const { blobs } = await store.list();
+  const all = (await Promise.all(
+    blobs.map(async ({ key }) => { try { return await store("predictions").get(key, { type: "json" }); } catch { return null; } })
+  )).filter(Boolean);
 
-  const allPredictions = await Promise.all(
-    blobs.map(async ({ key }) => {
-      const val = await store.get(key, { type: "json" });
-      return val;
-    })
-  );
+  all.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
 
-  // Sort newest first
-  allPredictions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(allPredictions),
-  };
+  return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(all) };
 };
