@@ -25,7 +25,8 @@ exports.handler = async (event) => {
   }
 
   if (action === "update-deadline") {
-    const { key, datetime } = body;
+    const { deadlineKey, datetime } = body;
+    const key = deadlineKey;
     if (!key || !datetime) return { statusCode: 400, body: "Missing key or datetime" };
     let overrides = {};
     try { overrides = (await cfg.get("deadline-overrides", { type: "json" })) || {}; } catch {}

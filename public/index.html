@@ -912,7 +912,7 @@ function renderDeadlinesPanel(deadlines) {
       try {
         const res = await fetch("/.netlify/functions/admin", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ key: adminKey, action: "update-deadline", key: key, datetime: utc }),
+          body: JSON.stringify({ key: adminKey, action: "update-deadline", deadlineKey: key, datetime: utc }),
         });
         if (!res.ok) throw new Error();
         showToast(`✓ ${label} deadline updated`, "success");
