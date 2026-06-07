@@ -612,7 +612,7 @@ function matchCard(m) {
   card.innerHTML = `
     <div class="team-home">
       <div class="team-name">${m.home}</div>
-      <div class="match-meta">${formatDate(m.date)}${m.kickoffBST ? ' · ' + m.kickoffBST + ' BST' : ''}${m.city ? ' · ' + m.city : ''}${m.group ? ' · Grp ' + m.group : ''}</div>
+      <div class="match-meta">${formatDate(m.date)}${m.kickoffBST ? ' · ' + m.kickoffBST.replace('*','') + ' BST' + (m.kickoffBST.includes('*') ? ' (+1)' : '') : ''}${m.city ? ' · ' + m.city : ''}${m.group ? ' · Grp ' + m.group : ''}</div>
     </div>
     <div class="score-inputs">
       <input type="number" min="0" max="20" value="${pred.home ?? ""}" data-id="${m.id}" data-side="home" placeholder="–" ${locked ? "disabled" : ""} />
