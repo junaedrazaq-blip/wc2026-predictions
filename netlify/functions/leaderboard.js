@@ -1,4 +1,18 @@
 const { store } = require("./_store");
+const { GROUP_MATCHES } = require("./matches-data");
+const { writeSnapshotTab } = require("./_sheets");
+
+// Map from deadlineKey → snapshot tab name
+const SNAPSHOT_TAB_NAMES = {
+  "group-md1":    "MD1 Snapshot",
+  "group-md2":    "MD2 Snapshot",
+  "group-md3":    "MD3 Snapshot",
+  "Round of 32":  "R32 Snapshot",
+  "Round of 16":  "R16 Snapshot",
+  "Quarter-final":"QF Snapshot",
+  "Semi-final":   "SF Snapshot",
+  "Final":        "Final Snapshot",
+};
 
 function calcPoints(predicted, actual) {
   if (!predicted || !actual) return 0;
@@ -23,18 +37,79 @@ function calcBonusPoints(entry, bonusAnswers) {
   return { pts, winnerCorrect, bootCorrect };
 }
 
+// Work out which deadlineKey a matchId belongs to
+function getDeadlineKey(matchId, knockoutFixtures) {
+  const groupMatch = GROUP_MATCHES.find(m => m.id === matchId);
+  if (groupMatch) return groupMatch.deadlineKey;
+  const koMatch = (knockoutFixtures || []).find(m => m.id === matchId);
+  if (koMatch) return koMatch.deadlineKey || koMatch.stage;
+  return null;
+}
+
 exports.handler = async (event) => {
   const adminKey = process.env.ADMIN_KEY || "wc2026admin";
 
+  // ── POST: save a result, then trigger snapshot if first result for that round ──
   if (event.httpMethod === "POST") {
     const body = JSON.parse(event.body || "{}");
     if (body.key !== adminKey) return { statusCode: 401, body: "Unauthorised" };
     const { matchId, homeScore, awayScore } = body;
-    await store("results").setJSON(matchId, { home: homeScore, away: awayScore });
+
+    const resultsStore     = store("results");
+    const predictionsStore = store("predictions");
+    const configStore      = store("config");
+
+    // Save the result
+    await resultsStore.setJSON(matchId, { home: homeScore, away: awayScore });
+
+    // Check if this is the first result for this round → trigger snapshot
+    try {
+      let knockoutFixtures = [];
+      try { knockoutFixtures = (await configStore.get("knockout-fixtures", { type: "json" })) || []; } catch {}
+
+      const deadlineKey = getDeadlineKey(matchId, knockoutFixtures);
+      const tabName = deadlineKey ? SNAPSHOT_TAB_NAMES[deadlineKey] : null;
+
+      if (tabName) {
+        // Get all match IDs that belong to this round
+        const roundMatchIds = [
+          ...GROUP_MATCHES.filter(m => m.deadlineKey === deadlineKey).map(m => m.id),
+          ...knockoutFixtures.filter(m => (m.deadlineKey || m.stage) === deadlineKey).map(m => m.id),
+        ];
+
+        // Check if we have any prior results for this round (other than the one just saved)
+        let { blobs: resultBlobs } = await resultsStore.list();
+        const priorResultsForRound = resultBlobs.filter(b =>
+          b.key !== matchId && roundMatchIds.includes(b.key)
+        );
+
+        // Only snapshot on the FIRST result for the round
+        if (priorResultsForRound.length === 0) {
+          // Load all predictions
+          let { blobs: predBlobs } = await predictionsStore.list();
+          const allPredictions = (await Promise.all(
+            predBlobs.map(async b => {
+              try { return await predictionsStore.get(b.key, { type: "json" }); } catch { return null; }
+            })
+          )).filter(Boolean);
+
+          // All matches for display info
+          const allMatches = [...GROUP_MATCHES, ...knockoutFixtures];
+
+          // Fire-and-forget — don't await so we don't slow down the result save response
+          writeSnapshotTab(tabName, allPredictions, roundMatchIds, allMatches)
+            .catch(err => console.error("Snapshot error:", err));
+        }
+      }
+    } catch (err) {
+      // Non-fatal — result is already saved, snapshot failure shouldn't block the admin
+      console.error("Snapshot trigger error:", err);
+    }
+
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   }
 
-  // GET — verify admin key then return leaderboard
+  // ── GET: verify key, return leaderboard ──
   const provided = event.queryStringParameters?.key;
   if (provided !== adminKey) return { statusCode: 401, body: JSON.stringify({ error: "Unauthorised" }) };
 
@@ -69,13 +144,8 @@ exports.handler = async (event) => {
     }
     const { pts: bonusPts, winnerCorrect, bootCorrect } = calcBonusPoints(entry, bonusAnswers);
     total += bonusPts;
-
     return {
-      name: entry.name,
-      id: entry.id,
-      total,
-      exact,
-      correct,
+      name: entry.name, id: entry.id, total, exact, correct,
       bonusWinner: winnerCorrect ? entry.bonus?.winner : null,
       bonusBoot:   bootCorrect   ? entry.bonus?.boot   : null,
       bonusGoals:  entry.bonus?.goals,
@@ -83,7 +153,6 @@ exports.handler = async (event) => {
     };
   });
 
-  // Sort: total pts desc, exact scores desc, then closest total goals tiebreaker
   const actualGoals = bonusAnswers?.goals;
   leaderboard.sort((a, b) => {
     if (b.total !== a.total) return b.total - a.total;
