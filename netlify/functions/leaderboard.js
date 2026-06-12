@@ -109,9 +109,12 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   }
 
-  // ── GET: verify key, return leaderboard ──
+  // ── GET: public leaderboard — key param used only for admin login verification ──
   const provided = event.queryStringParameters?.key;
-  if (provided !== adminKey) return { statusCode: 401, body: JSON.stringify({ error: "Unauthorised" }) };
+  // If a key was supplied (admin login check) verify it — otherwise allow public access
+  if (provided && provided !== adminKey) {
+    return { statusCode: 401, body: JSON.stringify({ error: "Unauthorised" }) };
+  }
 
   const resultsStore     = store("results");
   const predictionsStore = store("predictions");
