@@ -46,11 +46,19 @@ exports.handler = async (event) => {
   const key = name.trim().toLowerCase().replace(/\s+/g, "-");
   const timestamp = new Date().toISOString();
 
+  // Load any existing entry for this player and merge rather than overwrite
+  let existing = null;
+  try { existing = await store("predictions").get(key, { type: "json" }); } catch {}
+
+  const mergedPredictions = { ...(existing?.predictions || {}), ...valid };
+  const mergedBonus = { ...(existing?.bonus || {}), ...validBonus };
+  const mergedLocked = [...new Set([...(existing?.lockedOut || []), ...locked])];
+
   await store("predictions").setJSON(key, {
     id: key, name: name.trim(),
-    predictions: valid,
-    bonus: validBonus,
-    lockedOut: locked,
+    predictions: mergedPredictions,
+    bonus: mergedBonus,
+    lockedOut: mergedLocked,
     submittedAt: timestamp,
   });
 

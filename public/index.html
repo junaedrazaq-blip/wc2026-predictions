@@ -332,6 +332,12 @@
               <input type="text" id="ko-away" placeholder="e.g. France" />
             </div>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Match ID (optional)</label>
+              <input type="text" id="ko-id" placeholder="e.g. 073 — leave blank to auto-generate" />
+            </div>
+          </div>
           <div class="form-row trio">
             <div class="form-group">
               <label>Stage</label>
@@ -881,13 +887,14 @@ function renderAdminMatchList() {
 $("#btn-add-fixture").addEventListener("click", async () => {
   const home = $("#ko-home").value.trim();
   const away = $("#ko-away").value.trim();
+  const manualId = $("#ko-id").value.trim();
   const stage = $("#ko-stage").value;
   const date = $("#ko-date").value;
   const deadlineVal = $("#ko-deadline").value;
 
   if (!home || !away) return showToast("Enter both team names", "error");
 
-  const id = `ko-${stage.toLowerCase().replace(/\s+/g,"-")}-${home.toLowerCase().replace(/\s+/g,"-")}-vs-${away.toLowerCase().replace(/\s+/g,"-")}`;
+  const id = manualId || `ko-${stage.toLowerCase().replace(/\s+/g,"-")}-${home.toLowerCase().replace(/\s+/g,"-")}-vs-${away.toLowerCase().replace(/\s+/g,"-")}`;
   const deadlineKey = stage;
   const deadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
 
@@ -904,8 +911,8 @@ $("#btn-add-fixture").addEventListener("click", async () => {
     await reloadMatches();
     renderStageFilters();
     renderMatches(currentStage);
-    showToast(`✓ ${home} vs ${away} added`, "success");
-    $("#ko-home").value = ""; $("#ko-away").value = ""; $("#ko-date").value = ""; $("#ko-deadline").value = "";
+    showToast(`✓ ${home} vs ${away} added (ID: ${id})`, "success");
+    $("#ko-home").value = ""; $("#ko-away").value = ""; $("#ko-id").value = ""; $("#ko-date").value = ""; $("#ko-deadline").value = "";
   } catch (e) { showToast("Failed to add fixture", "error"); }
 });
 
